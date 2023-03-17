@@ -1,31 +1,31 @@
 from flask import Flask, render_template, request
-import json
+import requests
 
-app = Flask(__name__, template_folder='Templates')
+app = Flask(__name__)
 
-@app.route("/")
-def home():
-    return render_template('index.html')
+def fetchsoccer():
+    url = "https://livescore6.p.rapidapi.com/teams/detail"
 
-@app.route("/marchmadness")
-def fetchmbasketball():
-    with open("2018.json") as file:
-        data = json.load(file)
+    querystring = {"ID":"3339"}
 
-    game = []
-    top_10 = sorted(data["team"][:10])
-    for teams in top_10:
-        for place in data["seed"]:
-            if place > 10:
-                return teams
-    game.append(teams)
+    headers = {
+	"X-RapidAPI-Key": "c957e814a4mshe64ef3cce813326p1cde75jsnc3480bd5e8c5",
+	"X-RapidAPI-Host": "livescore6.p.rapidapi.com"
+    }
 
+    response = requests.request("GET", url, headers=headers, params=querystring)
+
+    print(response.text)
+
+#need to do parsing Soccerdata
+@app.route('/', methods=['GET', 'POST'])
+def index():
     if request.method == 'POST':
         selected_team = request.form.get('team')
         return f"You selected {selected_team}."
     else:
-        return render_template('marchmadness.html', teams=top_10)
+        teams = fetchsoccer()
+        return render_template('Soccer.html', teams=teams)
 
 if __name__ == '__main__':
-    app.run(host="localhost", port=8000, debug=True)
-
+    app.run(debug=True)
