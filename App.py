@@ -1,31 +1,39 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template
 import requests
+import matplotlib.pyplot as plt
+import os
 
 app = Flask(__name__)
 
-def fetchsoccer():
-    url = "https://livescore6.p.rapidapi.com/teams/detail"
+@app.route("/")
+def home():
+    return render_template("Crypto.html")
 
-    querystring = {"ID":"3339"}
+@app.route('/chart', methods=['GET'])
+def charts():
+    url = "https://fcsapi.com/api-v3/crypto/supply?symbol=BTC,XRP&convert=USD&access_key=YJ0kxYoB0J79xzs4htS8K5BI8"
 
-    headers = {
-	"X-RapidAPI-Key": "c957e814a4mshe64ef3cce813326p1cde75jsnc3480bd5e8c5",
-	"X-RapidAPI-Host": "livescore6.p.rapidapi.com"
-    }
+    data = requests.get(url)
+    cryptodata = data.json()
 
-    response = requests.request("GET", url, headers=headers, params=querystring)
+    x_values = []
+    y_values = []
 
-    print(response.text)
+    for item in cryptodata:
+        x_values.append(item["percentage_change_24h"])
+        y_values.append(item["price"])
+    
+    plt.plot(x_values, y_values)
+    plt.xlabel('X Values')
+    plt.ylabel('Y Values')
+    plt.title('API Data Plot')
+    plt.show()
 
-#need to do parsing Soccerdata
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    if request.method == 'POST':
-        selected_team = request.form.get('team')
-        return f"You selected {selected_team}."
-    else:
-        teams = fetchsoccer()
-        return render_template('Soccer.html', teams=teams)
+
+    plot_path = os.path.join(app.static_folder, 'plot.png')
+    plt.savefig(plot_path)
+
+    return f'<img src="{plot_path}">'
 
 if __name__ == '__main__':
     app.run(debug=True)
