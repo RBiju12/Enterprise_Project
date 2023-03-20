@@ -5,4 +5,3 @@ RUN pip install flask
 COPY . /opt
 EXPOSE 5000
 CMD ["python3", "/opt/app.py"]
-
